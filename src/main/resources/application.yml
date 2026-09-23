@@ -1,0 +1,44 @@
+spring:
+  application:
+    name: subscription-api
+  datasource:
+    url: ${DATABASE_URL:jdbc:h2:file:./data/subscriptions;DB_CLOSE_ON_EXIT=FALSE}
+    username: ${DATABASE_USERNAME:sa}
+    password: ${DATABASE_PASSWORD:}
+  jpa:
+    hibernate:
+      ddl-auto: ${JPA_DDL_AUTO:update}
+    open-in-view: false
+    show-sql: false
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:https://iam.dev.sandbox.internal.nbank.fr/auth/realms/internal}
+          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:https://iam.dev.sandbox.internal.nbank.fr/auth/realms/internal/protocol/openid-connect/certs}
+
+app:
+  security:
+    disabled: ${DISABLE_AUTH:false}
+
+server:
+  port: ${PORT:8080}
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    display-request-duration: true
+
+---
+spring:
+  config:
+    activate:
+      on-profile: insecure
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.security.oauth2.resource.servlet.OAuth2ResourceServerAutoConfiguration
+  app:
+    security:
+      disabled: true
