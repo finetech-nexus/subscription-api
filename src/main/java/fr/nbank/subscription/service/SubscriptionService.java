@@ -32,7 +32,8 @@ public class SubscriptionService {
     UUID id = UUID.randomUUID();
     Instant now = Instant.now();
     CustomerSubscription saved = subscriptions.save(new CustomerSubscription(id, ownerId, "AUTO_INSURANCE", quote.getId(),
-        option.code(), option.name(), option.annualPremium(), option.currency(), "REQUESTED", quote.getDetailsJson(), now, now));
+        option.code(), option.name(), option.annualPremium(), option.currency(), "REQUESTED",
+        request.language() == null || request.language().isBlank() ? "en" : request.language(), quote.getDetailsJson(), now, now));
     quoteService.markConverted(quote);
     return response(saved);
   }
@@ -66,7 +67,8 @@ public class SubscriptionService {
 
   private SubscriptionResponse response(CustomerSubscription row) {
     return new SubscriptionResponse(row.getId(), "SUB-" + row.getId().toString().substring(0, 8).toUpperCase(),
-        row.getProductType(), row.getQuoteId(), row.getPlanCode(), row.getPlanName(), row.getAnnualPremium(),
+        row.getProductType(), row.getLanguage() == null || row.getLanguage().isBlank() ? "en" : row.getLanguage(),
+        row.getQuoteId(), row.getPlanCode(), row.getPlanName(), row.getAnnualPremium(),
         row.getCurrency(), row.getStatus(), message(row.getStatus()), row.getCreatedAt(), row.getUpdatedAt());
   }
 

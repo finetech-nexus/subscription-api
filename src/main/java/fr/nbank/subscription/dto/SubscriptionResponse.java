@@ -8,6 +8,7 @@ public record SubscriptionResponse(
     UUID id,
     String reference,
     String productType,
+    String language,
     UUID quoteId,
     String planCode,
     String planName,

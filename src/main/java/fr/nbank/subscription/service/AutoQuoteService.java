@@ -92,18 +92,18 @@ public class AutoQuoteService {
         .multiply(BigDecimal.valueOf(1d + Math.min(age, 30) * 0.012d));
     BigDecimal liability = roundToFive(vehicleBase);
     List<QuoteOption> options = new ArrayList<>();
-    options.add(new QuoteOption("ESSENTIELLE", "Nexus Essentielle", "Responsabilité civile · estimation annuelle",
+    options.add(new QuoteOption("ESSENTIELLE", "Nexus Essential", "Third-party cover · annual estimate",
         liability, liability.divide(BigDecimal.valueOf(12), 2, RoundingMode.HALF_UP), "TND",
-        List.of("Responsabilité civile obligatoire", "Assistance de base")));
+        List.of("Mandatory third-party liability", "Basic roadside assistance")));
     if ("comprehensive".equals(request.coverage())) {
       BigDecimal comfort = roundToFive(vehicleBase.multiply(BigDecimal.valueOf(1.75)));
       BigDecimal allRisk = roundToFive(vehicleBase.multiply(BigDecimal.valueOf(2.55)));
-      options.add(new QuoteOption("CONFORT", "Nexus Confort", "Protection étendue · estimation annuelle",
+      options.add(new QuoteOption("CONFORT", "Nexus Comfort", "Extended protection · annual estimate",
           comfort, comfort.divide(BigDecimal.valueOf(12), 2, RoundingMode.HALF_UP), "TND",
-          List.of("Responsabilité civile", "Bris de glace", "Assistance étendue")));
-      options.add(new QuoteOption("TOUS_RISQUES", "Nexus Tous risques", "Protection maximale · estimation annuelle",
+          List.of("Third-party liability", "Glass breakage", "Extended roadside assistance")));
+      options.add(new QuoteOption("TOUS_RISQUES", "Nexus All-risk", "Maximum protection · annual estimate",
           allRisk, allRisk.divide(BigDecimal.valueOf(12), 2, RoundingMode.HALF_UP), "TND",
-          List.of("Garanties Confort", "Dommages tous accidents", "Vol et incendie")));
+          List.of("Comfort coverages", "Accidental damage", "Theft and fire")));
     }
     return options;
   }
