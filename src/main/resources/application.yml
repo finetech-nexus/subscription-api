@@ -14,8 +14,8 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${KEYCLOAK_ISSUER_URI:https://iam.dev.sandbox.internal.nbank.fr/auth/realms/internal}
-          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:https://iam.dev.sandbox.internal.nbank.fr/auth/realms/internal/protocol/openid-connect/certs}
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:https://iam.dev.sandbox.internal.nbank.fr/auth/realms/customer}
+          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:https://iam.dev.sandbox.internal.nbank.fr/auth/realms/customer/protocol/openid-connect/certs}
 
 app:
   security:
