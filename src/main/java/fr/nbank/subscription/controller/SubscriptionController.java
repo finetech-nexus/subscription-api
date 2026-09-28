@@ -1,5 +1,6 @@
 package fr.nbank.subscription.controller;
 
+import fr.nbank.subscription.dto.CreateProductSubscriptionRequest;
 import fr.nbank.subscription.dto.CreateSubscriptionRequest;
 import fr.nbank.subscription.dto.SubscriptionResponse;
 import fr.nbank.subscription.service.SubscriptionService;
@@ -23,7 +24,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api/subscriptions")
-@Tag(name = "Customer subscriptions", description = "Create and manage your insurance subscription requests")
+@Tag(name = "Customer subscriptions", description = "Your insurance requests, cards and offer subscriptions")
 public class SubscriptionController {
   private final SubscriptionService service;
   private final boolean authDisabled;
@@ -36,6 +37,12 @@ public class SubscriptionController {
   @Operation(summary = "Create a subscription request from a quotation")
   public ResponseEntity<SubscriptionResponse> create(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody CreateSubscriptionRequest request) {
     return ResponseEntity.status(HttpStatus.CREATED).body(service.create(ownerId(jwt), request));
+  }
+
+  @PostMapping("/products")
+  @Operation(summary = "Record a card or offer subscription", description = "Called by the BFF after the product service confirms the operation. Idempotent per externalReference.")
+  public ResponseEntity<SubscriptionResponse> createProduct(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody CreateProductSubscriptionRequest request) {
+    return ResponseEntity.status(HttpStatus.CREATED).body(service.createProduct(ownerId(jwt), request));
   }
 
   @GetMapping

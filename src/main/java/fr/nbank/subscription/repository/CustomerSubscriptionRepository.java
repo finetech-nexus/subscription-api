@@ -9,4 +9,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface CustomerSubscriptionRepository extends JpaRepository<CustomerSubscription, UUID> {
   List<CustomerSubscription> findByOwnerIdOrderByCreatedAtDesc(String ownerId);
   Optional<CustomerSubscription> findByIdAndOwnerId(UUID id, String ownerId);
+  Optional<CustomerSubscription> findFirstByOwnerIdAndProductTypeAndExternalReference(String ownerId, String productType, String externalReference);
 }

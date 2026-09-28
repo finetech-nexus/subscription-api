@@ -1,6 +1,6 @@
 # Subscription API
 
-Spring Boot service for mocked auto insurance quotations and persisted, customer-owned subscription requests.
+Spring Boot service for mocked auto insurance quotations and persisted, customer-owned subscriptions: insurance requests, card orders and executed offers.
 
 ## Customer journey
 
@@ -8,6 +8,23 @@ Spring Boot service for mocked auto insurance quotations and persisted, customer
 2. `GET /api/insurance/auto/quotes/{quoteId}` reloads a quote owned by the current user.
 3. `POST /api/subscriptions` converts one available quote into a `REQUESTED` subscription after the user accepts the data-processing terms. The selected offer language (`en`, `fr`, or `ar`) is stored with the user's subscription. A quote can only be used once.
 4. `GET /api/subscriptions` and `GET /api/subscriptions/{id}` show only records belonging to the JWT subject. `POST /api/subscriptions/{id}/cancel` cancels a pending request. A request cannot be cancelled after it becomes active.
+
+## Card and offer subscriptions
+
+`POST /api/subscriptions/products` records a card order or an executed offer (for example the mobile top-up) for the JWT subject. The BFF (`nexus-bank-api`) calls it with the customer's own token right after `card-management-api` issues a card or `produit-api` returns `status: SUCCESS` for an offer action; the BFF refuses the same path from the mobile app. Only the public card view is stored, never the PAN or CVV.
+
+| Field | Card | Offer |
+|---|---|---|
+| `productType` | `CARD` | `OFFER` |
+| `productId`, `productName`, `tenantId` | Catalog card product | Catalog offer |
+| `planCode` / `planName` | Card kind / scheme, kind and form | `actionKey` / category |
+| `status` | `PENDING` (physical, awaiting delivery) or `ACTIVE` | `COMPLETED` |
+| `amount` | Delivery fee (physical cards) | Operation amount, e.g. top-up value |
+| `monthlyFee` | Product monthly fee | Offer monthly fee, if any |
+| `externalReference` | Issued card id | Operation reference, e.g. `TOPUP-…` |
+| `details` | Localized names, last 4 digits, expiry, holder, account | Localized names, submitted parameters, operation result (recharge number, dial code) |
+
+The call is idempotent per `(productType, externalReference)` for a user. Only `REQUESTED` insurance requests can be cancelled; card and offer records are a history of what the customer subscribed to and are not updated when a card is later frozen or closed.
 
 The mock quote is not an insurance contract. A `REQUESTED` record represents an application awaiting partner processing; it does not charge the customer or activate a policy.
 
