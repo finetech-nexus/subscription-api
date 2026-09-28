@@ -61,7 +61,7 @@ Create a subscription by choosing one returned package:
 }
 ```
 
-Swagger UI: `/swagger-ui.html`; OpenAPI: `/v3/api-docs`. Both are public; customer endpoints require a bearer token issued by the `customer` realm. The resource-server decoder accepts RS256 and RS512 signatures and validates the configured issuer and JWKS endpoint. `SUBSCRIPTION_JWKS_TLS_VERIFY=false` is available only for development environments with a private IAM certificate; it relaxes TLS checks for JWKS retrieval only.
+Swagger UI: `/swagger-ui.html`; OpenAPI: `/v3/api-docs`. Both are public; customer endpoints require the app user's bearer token from the `global` realm (the realm the BFF validates and forwards unchanged). The resource-server decoder accepts RS256 and RS512 signatures and validates the configured issuer and JWKS endpoint. `SUBSCRIPTION_JWKS_TLS_VERIFY=false` is available only for development environments with a private IAM certificate; it relaxes TLS checks for JWKS retrieval only.
 
 ## Storage and configuration
 
