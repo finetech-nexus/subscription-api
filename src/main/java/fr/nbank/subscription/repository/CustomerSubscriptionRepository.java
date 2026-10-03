@@ -10,4 +10,7 @@ public interface CustomerSubscriptionRepository extends JpaRepository<CustomerSu
   List<CustomerSubscription> findByOwnerIdOrderByCreatedAtDesc(String ownerId);
   Optional<CustomerSubscription> findByIdAndOwnerId(UUID id, String ownerId);
   Optional<CustomerSubscription> findFirstByOwnerIdAndProductTypeAndExternalReference(String ownerId, String productType, String externalReference);
+  List<CustomerSubscription> findByOwnerIdAndProductTypeAndStatusOrderByCreatedAtDesc(String ownerId, String productType, String status);
+  Optional<CustomerSubscription> findFirstByOwnerIdAndProductTypeAndTenantIdAndStatusOrderByCreatedAtDesc(
+      String ownerId, String productType, String tenantId, String status);
 }

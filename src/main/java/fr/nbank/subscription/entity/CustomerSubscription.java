@@ -50,6 +50,9 @@ public class CustomerSubscription {
   public String getLanguage(){return language;} public String getDetailsJson(){return detailsJson;}
   public void setStatus(String status){this.status=status;} public Instant getCreatedAt(){return createdAt;} public Instant getUpdatedAt(){return updatedAt;}
   public void setUpdatedAt(Instant updatedAt){this.updatedAt=updatedAt;}
+  public void setPlanCode(String planCode){this.planCode=planCode;}
+  public void setPlanName(String planName){this.planName=planName;}
+  public void setDetailsJson(String detailsJson){this.detailsJson=detailsJson;}
   public void setProduct(String productId, String productName, String tenantId){this.productId=productId; this.productName=productName; this.tenantId=tenantId;}
   public void setPricing(BigDecimal amount, BigDecimal monthlyFee){this.amount=amount; this.monthlyFee=monthlyFee;}
   public void setExternalReference(String externalReference){this.externalReference=externalReference;}

@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 import java.util.Map;
 
 public record CreateProductSubscriptionRequest(
-    @NotBlank @Pattern(regexp = "^(CARD|OFFER)$") String productType,
+    @NotBlank @Pattern(regexp = "^(CARD|OFFER|BANK_PLAN)$") String productType,
     @NotBlank @Size(max = 80) String productId,
     @NotBlank @Size(max = 160) String productName,
     @Size(max = 16) String tenantId,

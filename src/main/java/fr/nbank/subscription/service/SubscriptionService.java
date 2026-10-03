@@ -48,12 +48,33 @@ public class SubscriptionService {
   @Transactional
   public SubscriptionResponse createProduct(String ownerId, CreateProductSubscriptionRequest request) {
     String externalReference = blankToNull(request.externalReference());
-    if (externalReference != null) {
-      var existing = subscriptions.findFirstByOwnerIdAndProductTypeAndExternalReference(ownerId, request.productType(), externalReference);
-      if (existing.isPresent()) return response(existing.get());
-    }
     Instant now = Instant.now();
     String status = request.status() == null || request.status().isBlank() ? "ACTIVE" : request.status();
+    if (externalReference != null) {
+      var existing = subscriptions.findFirstByOwnerIdAndProductTypeAndExternalReference(ownerId, request.productType(), externalReference);
+      if (existing.isPresent()) {
+        CustomerSubscription row = existing.get();
+        boolean bankPlan = "BANK_PLAN".equals(request.productType());
+        if (!bankPlan || "ACTIVE".equals(row.getStatus())) {
+          return response(row);
+        }
+        // Re-activate a previously cancelled bank plan for the same tier.
+        if (bankPlan && "ACTIVE".equals(status)) {
+          cancelActiveBankPlans(ownerId, blankToNull(request.tenantId()), now);
+          row.setStatus("ACTIVE");
+          row.setPlanCode(blankToNull(request.planCode()));
+          row.setPlanName(blankToNull(request.planName()));
+          row.setProduct(request.productId().trim(), request.productName().trim(), blankToNull(request.tenantId()));
+          row.setPricing(request.amount(), request.monthlyFee());
+          row.setDetailsJson(writeDetails(request.details()));
+          row.setUpdatedAt(now);
+          return response(subscriptions.save(row));
+        }
+      }
+    }
+    if ("BANK_PLAN".equals(request.productType()) && "ACTIVE".equals(status)) {
+      cancelActiveBankPlans(ownerId, blankToNull(request.tenantId()), now);
+    }
     CustomerSubscription row = new CustomerSubscription(UUID.randomUUID(), ownerId, request.productType(), null,
         blankToNull(request.planCode()), blankToNull(request.planName()), null,
         request.currency().trim().toUpperCase(Locale.ROOT), status, language(request.language()),
@@ -78,12 +99,43 @@ public class SubscriptionService {
   public SubscriptionResponse cancel(String ownerId, UUID id) {
     CustomerSubscription subscription = findOwned(ownerId, id);
     if ("CANCELLED".equals(subscription.getStatus())) return response(subscription);
-    if (!"REQUESTED".equals(subscription.getStatus())) {
+    boolean bankPlan = "BANK_PLAN".equals(subscription.getProductType());
+    if (!"REQUESTED".equals(subscription.getStatus()) && !(bankPlan && "ACTIVE".equals(subscription.getStatus()))) {
       throw new ResponseStatusException(HttpStatus.CONFLICT, "Only pending subscription requests can be cancelled");
     }
     subscription.setStatus("CANCELLED");
     subscription.setUpdatedAt(Instant.now());
     return response(subscriptions.save(subscription));
+  }
+
+  @Transactional(readOnly = true)
+  public SubscriptionResponse currentBankPlan(String ownerId, String tenantId) {
+    String tenant = blankToNull(tenantId);
+    if (tenant != null) {
+      return subscriptions
+          .findFirstByOwnerIdAndProductTypeAndTenantIdAndStatusOrderByCreatedAtDesc(ownerId, "BANK_PLAN", tenant, "ACTIVE")
+          .map(this::response)
+          .orElse(null);
+    }
+    return subscriptions
+        .findByOwnerIdAndProductTypeAndStatusOrderByCreatedAtDesc(ownerId, "BANK_PLAN", "ACTIVE")
+        .stream()
+        .findFirst()
+        .map(this::response)
+        .orElse(null);
+  }
+
+  private void cancelActiveBankPlans(String ownerId, String tenantId, Instant now) {
+    List<CustomerSubscription> active = subscriptions
+        .findByOwnerIdAndProductTypeAndStatusOrderByCreatedAtDesc(ownerId, "BANK_PLAN", "ACTIVE");
+    for (CustomerSubscription row : active) {
+      if (tenantId != null && row.getTenantId() != null && !tenantId.equalsIgnoreCase(row.getTenantId())) {
+        continue;
+      }
+      row.setStatus("CANCELLED");
+      row.setUpdatedAt(now);
+      subscriptions.save(row);
+    }
   }
 
   private CustomerSubscription findOwned(String ownerId, UUID id) {

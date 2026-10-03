@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -49,6 +50,16 @@ public class SubscriptionController {
   @Operation(summary = "List your subscriptions")
   public List<SubscriptionResponse> list(@AuthenticationPrincipal Jwt jwt) {
     return service.list(ownerId(jwt));
+  }
+
+  @GetMapping("/membership/current")
+  @Operation(summary = "Current active bank membership plan for a tenant")
+  public ResponseEntity<SubscriptionResponse> currentMembership(
+      @AuthenticationPrincipal Jwt jwt,
+      @RequestParam(required = false) String tenantId) {
+    SubscriptionResponse current = service.currentBankPlan(ownerId(jwt), tenantId);
+    if (current == null) return ResponseEntity.noContent().build();
+    return ResponseEntity.ok(current);
   }
 
   @GetMapping("/{subscriptionId}")
