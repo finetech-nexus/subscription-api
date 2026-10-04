@@ -3,6 +3,7 @@ package fr.nbank.subscription.controller;
 import fr.nbank.subscription.dto.CreateReferralRequest;
 import fr.nbank.subscription.dto.MatchReferralRequest;
 import fr.nbank.subscription.dto.ReferralResponse;
+import fr.nbank.subscription.dto.ShareReferralResponse;
 import fr.nbank.subscription.service.ReferralService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -12,7 +13,6 @@ import java.util.Map;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,7 +26,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api/referrals")
-@Tag(name = "Parrainage", description = "Invite friends: save email, track status, credit after validation")
+@Tag(name = "Parrainage", description = "Share install link + rotating referral code; track status")
 public class ReferralController {
   private final ReferralService service;
   private final boolean authDisabled;
@@ -41,21 +41,28 @@ public class ReferralController {
     this.internalKey = internalKey == null ? "" : internalKey;
   }
 
-  @PostMapping
-  @Operation(summary = "Invite a friend by email (parrainage)")
-  public ResponseEntity<ReferralResponse> invite(
-      @AuthenticationPrincipal Jwt jwt, @Valid @RequestBody CreateReferralRequest request) {
-    return ResponseEntity.status(HttpStatus.CREATED).body(service.invite(ownerId(jwt), request));
+  @PostMapping("/current")
+  @Operation(summary = "Get (or create) the current ready-to-share parrainage code")
+  public ReferralResponse current(
+      @AuthenticationPrincipal Jwt jwt, @RequestBody(required = false) CreateReferralRequest body) {
+    return service.current(ownerId(jwt), body != null ? body : emptyRequest());
+  }
+
+  @PostMapping("/share")
+  @Operation(summary = "Mark current code as shared and generate the next code")
+  public ShareReferralResponse share(
+      @AuthenticationPrincipal Jwt jwt, @RequestBody(required = false) CreateReferralRequest body) {
+    return service.share(ownerId(jwt), body != null ? body : emptyRequest());
   }
 
   @GetMapping
-  @Operation(summary = "List your parrainage invitations and status")
+  @Operation(summary = "List your shared parrainage invitations and status")
   public List<ReferralResponse> list(@AuthenticationPrincipal Jwt jwt) {
     return service.list(ownerId(jwt));
   }
 
   @PostMapping("/internal/match")
-  @Operation(summary = "Internal: match invited email after account creation")
+  @Operation(summary = "Internal: match shared code (or legacy email) after account creation")
   public ReferralResponse match(
       @RequestHeader(value = "X-Internal-Key", required = false) String key,
       @Valid @RequestBody MatchReferralRequest request) {
@@ -101,6 +108,10 @@ public class ReferralController {
       @RequestHeader(value = "X-Internal-Key", required = false) String key, @PathVariable UUID id) {
     assertInternal(key);
     return service.markCredited(id);
+  }
+
+  private static CreateReferralRequest emptyRequest() {
+    return new CreateReferralRequest(null, null, null, null, null);
   }
 
   private void assertInternal(String key) {

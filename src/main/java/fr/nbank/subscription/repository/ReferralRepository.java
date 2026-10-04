@@ -7,12 +7,16 @@ import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ReferralRepository extends JpaRepository<Referral, UUID> {
-  List<Referral> findByOwnerIdOrderByCreatedAtDesc(String ownerId);
+  List<Referral> findByOwnerIdAndStatusNotOrderByCreatedAtDesc(String ownerId, String status);
+
+  Optional<Referral> findFirstByOwnerIdAndStatusOrderByCreatedAtDesc(String ownerId, String status);
+
+  Optional<Referral> findFirstByReferralCodeIgnoreCaseAndStatusIn(String referralCode, List<String> statuses);
 
   Optional<Referral> findFirstByInvitedEmailIgnoreCaseAndStatusInOrderByCreatedAtAsc(
       String invitedEmail, List<String> statuses);
 
   Optional<Referral> findFirstByWorkflowRuntimeId(String workflowRuntimeId);
 
-  boolean existsByOwnerIdAndInvitedEmailIgnoreCaseAndStatusIn(String ownerId, String invitedEmail, List<String> statuses);
+  boolean existsByReferralCodeIgnoreCase(String referralCode);
 }

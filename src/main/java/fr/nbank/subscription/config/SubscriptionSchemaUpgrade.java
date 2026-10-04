@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 /**
  * Card and offer subscriptions have no insurance plan or premium. Hibernate's
  * {@code ddl-auto=update} never relaxes NOT NULL on columns created by older versions.
+ * Also migrates parrainage from email invites to shareable codes.
  */
 @Component
 public class SubscriptionSchemaUpgrade implements ApplicationRunner {
@@ -27,6 +28,22 @@ public class SubscriptionSchemaUpgrade implements ApplicationRunner {
       } catch (RuntimeException ex) {
         log.warn("Could not make customer_subscription.{} nullable: {}", column, ex.getMessage());
       }
+    }
+    // Parrainage: invited_email is optional (filled when friend signs up).
+    try {
+      jdbc.execute("ALTER TABLE customer_referral ALTER COLUMN invited_email DROP NOT NULL");
+    } catch (RuntimeException ex) {
+      log.warn("Could not make customer_referral.invited_email nullable: {}", ex.getMessage());
+    }
+    // Backfill referral_code for legacy rows (unique placeholder from id prefix).
+    try {
+      jdbc.execute("""
+          UPDATE customer_referral
+          SET referral_code = UPPER(REPLACE(CAST(id AS varchar), '-', ''))
+          WHERE referral_code IS NULL OR referral_code = ''
+          """);
+    } catch (RuntimeException ex) {
+      log.warn("Could not backfill customer_referral.referral_code: {}", ex.getMessage());
     }
   }
 }

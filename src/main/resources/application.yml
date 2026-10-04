@@ -22,6 +22,14 @@ app:
     disabled: ${DISABLE_AUTH:false}
   internal:
     api-key: ${SUBSCRIPTION_INTERNAL_API_KEY:${INTERNAL_API_KEY:}}
+  parrainage:
+    # Install / deep-link base; final share URL is {base}/{referralCode}
+    share-base-url: ${PARRAINAGE_SHARE_BASE_URL:https://app.nexus-bank.io/r}
+  novu:
+    # Same Novu bridge used by iam-customs-authenticators for OTP email/SMS.
+    trigger-url: ${NOVU_TRIGGER_URL:https://api.novu.co/v1/events/trigger}
+    api-key: ${NOVU_API_KEY:}
+    parrainage-email-workflow-id: ${PARRAINAGE_EMAIL_WORKFLOW_ID:parrainage-email-workflow}
 
 server:
   port: ${PORT:8080}
