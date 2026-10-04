@@ -36,6 +36,7 @@ public class SecurityConfig {
         .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(auth -> auth
             .requestMatchers("/health", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+            .requestMatchers("/api/referrals/internal/**").permitAll()
             .requestMatchers("/api/**").authenticated()
             .anyRequest().denyAll())
         .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.decoder(subscriptionJwtDecoder)));

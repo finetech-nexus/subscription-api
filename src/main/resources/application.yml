@@ -20,6 +20,8 @@ spring:
 app:
   security:
     disabled: ${DISABLE_AUTH:false}
+  internal:
+    api-key: ${SUBSCRIPTION_INTERNAL_API_KEY:${INTERNAL_API_KEY:}}
 
 server:
   port: ${PORT:8080}
